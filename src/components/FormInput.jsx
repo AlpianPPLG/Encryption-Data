@@ -8,6 +8,11 @@ const FormInput = () => {
     des: "",
     caesar: "",
   });
+  const [decryptedData, setDecryptedData] = useState({
+    aes: "",
+    des: "",
+    caesar: "",
+  });
   const [error, setError] = useState("");
 
   const handleEncrypt = () => {
@@ -35,11 +40,42 @@ const FormInput = () => {
     setError(""); // Clear the error message after successful encryption
   };
 
+  const handleDecrypt = () => {
+    if (!inputData) {
+      setError("Input data tidak boleh kosong");
+      return;
+    }
+
+    try {
+      const aesDecrypted = CryptoJS.AES.decrypt(
+        encryptedData.aes,
+        "secret key 123"
+      ).toString(CryptoJS.enc.Utf8);
+      const desDecrypted = CryptoJS.DES.decrypt(
+        encryptedData.des,
+        "secret key 123"
+      ).toString(CryptoJS.enc.Utf8);
+      const caesarDecrypted = caesarCipher(encryptedData.caesar, -3);
+
+      setDecryptedData({
+        aes: aesDecrypted,
+        des: desDecrypted,
+        caesar: caesarDecrypted,
+      });
+
+      setError(""); // Clear the error message after successful decryption
+    } catch (error) {
+      setError(
+        "Error during decryption. Please ensure the correct encrypted data is provided."
+      );
+    }
+  };
+
   const caesarCipher = (str, shift) => {
     return str.replace(/[a-z]/gi, (char) => {
       const start = char <= "Z" ? 65 : 97;
       return String.fromCharCode(
-        start + ((char.charCodeAt(0) - start + shift) % 26)
+        start + ((char.charCodeAt(0) - start + shift + 26) % 26)
       );
     });
   };
@@ -74,14 +110,21 @@ const FormInput = () => {
       </div>
       <button
         onClick={handleEncrypt}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
       >
         Encrypt
+      </button>
+      <button
+        onClick={handleDecrypt}
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >
+        Decrypt
       </button>
       <div className="mt-4">
         <p className="text-gray-700 mb-2">
           Web ini dibangun oleh Alpian. Ini adalah aplikasi sederhana untuk
-          mengenkripsi data menggunakan beberapa algoritma enkripsi umum.
+          mengenkripsi dan mendekripsi data menggunakan beberapa algoritma
+          enkripsi umum.
         </p>
         <h2 className="text-lg font-semibold mb-2">Encrypted Data</h2>
         <table className="min-w-full bg-white border border-gray-300">
@@ -112,6 +155,39 @@ const FormInput = () => {
               </td>
               <td className="py-2 px-4 border-b border-gray-300 break-all">
                 {encryptedData.caesar}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <h2 className="text-lg font-semibold mt-4">Decrypted Data</h2>
+        <table className="min-w-full bg-white border border-gray-300">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b border-gray-300">Method</th>
+              <th className="py-2 px-4 border-b border-gray-300">
+                Decrypted Data
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="py-2 px-4 border-b border-gray-300">AES</td>
+              <td className="py-2 px-4 border-b border-gray-300 break-all">
+                {decryptedData.aes}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 px-4 border-b border-gray-300">DES</td>
+              <td className="py-2 px-4 border-b border-gray-300 break-all">
+                {decryptedData.des}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-2 px-4 border-b border-gray-300">
+                Caesar Cipher
+              </td>
+              <td className="py-2 px-4 border-b border-gray-300 break-all">
+                {decryptedData.caesar}
               </td>
             </tr>
           </tbody>
