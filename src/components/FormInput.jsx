@@ -8,9 +8,13 @@ const translations = {
     caesarShiftLabel: "Caesar Shift",
     encryptButton: "Encrypt",
     decryptButton: "Decrypt",
+    clearInputButton: "Clear Input",
+    clearHistoryButton: "Clear History",
     encryptedDataTitle: "Encrypted Data",
     decryptedDataTitle: "Decrypted Data",
+    analysisTitle: "Security Analysis",
     explanationTitle: "Explanation:",
+    historyTitle: "Encryption History",
     policy:
       "Application Policy:\n\n1. The entered data belongs to the user and is not stored.\n2. This application is not responsible for the misuse of encrypted data.\n3. Ensure not to use sensitive data without adequate encryption.",
     errorEmptyInput: "Input data cannot be empty",
@@ -23,6 +27,8 @@ const translations = {
       caesar:
         "Caesar Cipher: A simple encryption technique that shifts letters in the text by a certain amount, often used to demonstrate basic encryption concepts.",
     },
+    securityImportance:
+      "Encryption is essential for protecting sensitive information. It ensures that data remains confidential and secure from unauthorized access.",
   },
   id: {
     title: "Enkripsi Data",
@@ -30,9 +36,13 @@ const translations = {
     caesarShiftLabel: "Geser Caesar",
     encryptButton: "Enkripsi",
     decryptButton: "Dekripsi",
+    clearInputButton: "Kosongkan Input",
+    clearHistoryButton: "Kosongkan Riwayat",
     encryptedDataTitle: "Data Terenkripsi",
     decryptedDataTitle: "Data Terdekripsi",
+    analysisTitle: "Analisis Keamanan",
     explanationTitle: "Penjelasan:",
+    historyTitle: "Riwayat Enkripsi",
     policy:
       "Kebijakan Aplikasi:\n\n1. Data yang dimasukkan adalah milik pengguna dan tidak disimpan.\n2. Aplikasi ini tidak bertanggung jawab atas penyalahgunaan data yang dienkripsi.\n3. Pastikan untuk tidak menggunakan data sensitif tanpa enkripsi yang memadai.",
     errorEmptyInput: "Input data tidak boleh kosong",
@@ -45,6 +55,8 @@ const translations = {
       caesar:
         "Caesar Cipher: Teknik enkripsi sederhana yang menggeser huruf dalam teks dengan jumlah tertentu, sering digunakan untuk demonstrasi konsep enkripsi dasar.",
     },
+    securityImportance:
+      "Enkripsi sangat penting untuk melindungi informasi sensitif. Ini memastikan bahwa data tetap rahasia dan aman dari akses yang tidak sah.",
   },
 };
 
@@ -61,8 +73,55 @@ const FormInput = () => {
     des: "",
     caesar: "",
   });
+  const [securityAnalysis, setSecurityAnalysis] = useState({});
+  const [riskAssessment, setRiskAssessment] = useState("");
+  const [history, setHistory] = useState([]);
   const [error, setError] = useState("");
-  const [language, setLanguage] = useState("id"); // Default to Indonesian
+  const [language, setLanguage] = useState("id");
+
+  const analyzeSecurity = (data) => {
+    let keyStrength = "Weak";
+    const vulnerabilities = [];
+
+    if (data.length >= 12) {
+      keyStrength = "Strong";
+    } else if (data.length >= 8) {
+      keyStrength = "Moderate";
+    }
+
+    if (data.length < 8) {
+      vulnerabilities.push("Panjang kunci terlalu pendek.");
+    }
+    if (!/[A-Z]/.test(data)) {
+      vulnerabilities.push("Kunci harus mengandung huruf besar.");
+    }
+    if (!/[0-9]/.test(data)) {
+      vulnerabilities.push("Kunci harus mengandung angka.");
+    }
+    if (!/[!@#$%^&*]/.test(data)) {
+      vulnerabilities.push("Kunci harus mengandung karakter khusus.");
+    }
+
+    return {
+      keyStrength,
+      vulnerabilities,
+    };
+  };
+
+  const assessRisk = (encryptedData) => {
+    const risks = [];
+    if (encryptedData.aes.length < 32) {
+      risks.push(
+        "AES data mungkin tidak aman, pertimbangkan kunci yang lebih panjang."
+      );
+    }
+    if (encryptedData.des) {
+      risks.push("DES dianggap tidak aman dan sebaiknya tidak digunakan.");
+    }
+    // Additional checks can be added here.
+
+    return risks.length ? risks.join(" ") : "No significant risks detected.";
+  };
 
   const handleEncrypt = () => {
     if (!inputData) {
@@ -80,12 +139,29 @@ const FormInput = () => {
     ).toString();
     const caesarEncrypted = caesarCipher(inputData, shift);
 
+    const newEntry = {
+      input: inputData,
+      aes: aesEncrypted,
+      des: desEncrypted,
+      caesar: caesarEncrypted,
+      timestamp: new Date().toLocaleString(),
+    };
+
     setEncryptedData({
       aes: aesEncrypted,
       des: desEncrypted,
       caesar: caesarEncrypted,
     });
+
+    const analysis = analyzeSecurity(inputData);
+    setSecurityAnalysis(analysis);
+
+    const risk = assessRisk({ aes: aesEncrypted, des: desEncrypted });
+    setRiskAssessment(risk);
+
+    setHistory((prev) => [...prev, newEntry]);
     setError("");
+    setInputData("");
   };
 
   const handleDecrypt = () => {
@@ -150,6 +226,17 @@ const FormInput = () => {
     setLanguage((prev) => (prev === "id" ? "en" : "id"));
   };
 
+  const clearInput = () => {
+    setInputData("");
+    setEncryptedData({ aes: "", des: "", caesar: "" });
+    setDecryptedData({ aes: "", des: "", caesar: "" });
+    setError("");
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1
@@ -191,16 +278,54 @@ const FormInput = () => {
       </button>
       <button
         onClick={handleDecrypt}
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
       >
         {translations[language].decryptButton}
       </button>
       <button
+        onClick={clearInput}
+        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2"
+      >
+        {translations[language].clearInputButton}
+      </button>
+      <button
+        onClick={clearHistory}
+        className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >
+        {translations[language].clearHistoryButton}
+      </button>
+      <button
         onClick={toggleLanguage}
-        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
+        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-2 m-1"
       >
         {language === "id" ? "English" : "Bahasa Indonesia"}
       </button>
+
+      {/* Security Analysis Section */}
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold mb-2">
+          {translations[language].analysisTitle}
+        </h2>
+        <p className="text-gray-700">
+          <strong>Kekuatan Kunci:</strong> {securityAnalysis.keyStrength}
+        </p>
+        {securityAnalysis.vulnerabilities &&
+        securityAnalysis.vulnerabilities.length > 0 ? (
+          <ul className="list-disc list-inside text-red-500">
+            {securityAnalysis.vulnerabilities.map((vuln, index) => (
+              <li key={index}>{vuln}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-green-500">
+            Tidak ada kerentanan yang terdeteksi.
+          </p>
+        )}
+        <p className="text-gray-700 mt-2">
+          <strong>Risk Assessment:</strong> {riskAssessment}
+        </p>
+      </div>
+
       <div className="mt-4">
         <h2 className="text-lg font-semibold mb-2">
           {translations[language].encryptedDataTitle}
@@ -236,6 +361,7 @@ const FormInput = () => {
             ))}
           </tbody>
         </table>
+
         <h2 className="text-lg font-semibold mt-4">
           {translations[language].decryptedDataTitle}
         </h2>
@@ -270,9 +396,14 @@ const FormInput = () => {
             ))}
           </tbody>
         </table>
+
+        {/* Security Education Section */}
         <h2 className="text-xl font-semibold mt-4">
           {translations[language].explanationTitle}
         </h2>
+        <p className="mt-2 text-gray-700">
+          {translations[language].securityImportance}
+        </p>
         <div className="mt-2 text-gray-700">
           <p className="mb-2">
             {language === "id"
@@ -293,6 +424,44 @@ const FormInput = () => {
           </ul>
         </div>
       </div>
+
+      {/* Encryption History Section */}
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold mb-2">
+          {translations[language].historyTitle}
+        </h2>
+        <table className="min-w-full bg-white border border-gray-300">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b border-gray-300">Input Data</th>
+              <th className="py-2 px-4 border-b border-gray-300">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {history.map((entry, index) => (
+              <tr key={index}>
+                <td className="py-2 px-4 border-b border-gray-300 break-all">
+                  {entry.input}
+                </td>
+                <td className="py-2 px-4 border-b border-gray-300">
+                  {entry.timestamp}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Clear History Button */}
+      <div className="mt-2">
+        <button
+          onClick={clearHistory}
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+        >
+          {translations[language].clearHistoryButton}
+        </button>
+      </div>
+
       <footer className="mt-4 text-center text-gray-700">
         {language === "id"
           ? "Web ini dibangun oleh:"
