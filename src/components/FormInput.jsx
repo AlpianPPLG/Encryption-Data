@@ -10,6 +10,7 @@ const translations = {
     decryptButton: "Decrypt",
     clearInputButton: "Clear Input",
     clearHistoryButton: "Clear History",
+    helpButton: "Help",
     encryptedDataTitle: "Encrypted Data",
     decryptedDataTitle: "Decrypted Data",
     analysisTitle: "Security Analysis",
@@ -17,6 +18,8 @@ const translations = {
     historyTitle: "Encryption History",
     policy:
       "Application Policy:\n\n1. The entered data belongs to the user and is not stored.\n2. This application is not responsible for the misuse of encrypted data.\n3. Ensure not to use sensitive data without adequate encryption.",
+    helpContent:
+      "This is a data encryption tool. Enter data to encrypt or decrypt using different methods.",
     errorEmptyInput: "Input data cannot be empty",
     errorDecryption:
       "Error during decryption. Please ensure the correct encrypted data is provided.",
@@ -38,6 +41,7 @@ const translations = {
     decryptButton: "Dekripsi",
     clearInputButton: "Kosongkan Input",
     clearHistoryButton: "Kosongkan Riwayat",
+    helpButton: "Bantuan",
     encryptedDataTitle: "Data Terenkripsi",
     decryptedDataTitle: "Data Terdekripsi",
     analysisTitle: "Analisis Keamanan",
@@ -45,6 +49,8 @@ const translations = {
     historyTitle: "Riwayat Enkripsi",
     policy:
       "Kebijakan Aplikasi:\n\n1. Data yang dimasukkan adalah milik pengguna dan tidak disimpan.\n2. Aplikasi ini tidak bertanggung jawab atas penyalahgunaan data yang dienkripsi.\n3. Pastikan untuk tidak menggunakan data sensitif tanpa enkripsi yang memadai.",
+    helpContent:
+      "Ini adalah alat enkripsi data. Masukkan data untuk dienkripsi atau didekripsi menggunakan berbagai metode.",
     errorEmptyInput: "Input data tidak boleh kosong",
     errorDecryption:
       "Error saat dekripsi. Pastikan data terenkripsi yang benar diberikan.",
@@ -78,6 +84,7 @@ const FormInput = () => {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState("");
   const [language, setLanguage] = useState("id");
+  const [darkMode, setDarkMode] = useState(false);
 
   const analyzeSecurity = (data) => {
     let keyStrength = "Weak";
@@ -118,8 +125,6 @@ const FormInput = () => {
     if (encryptedData.des) {
       risks.push("DES dianggap tidak aman dan sebaiknya tidak digunakan.");
     }
-    // Additional checks can be added here.
-
     return risks.length ? risks.join(" ") : "No significant risks detected.";
   };
 
@@ -237,16 +242,40 @@ const FormInput = () => {
     setHistory([]);
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => !prev);
+  };
+
+  const showHelp = () => {
+    alert(translations[language].helpContent);
+  };
+
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div
+      className={`p-4 max-w-md mx-auto ${
+        darkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+      }`}
+    >
       <h1
         className="text-2xl font-bold mb-4"
         onClick={() => window.location.reload()}
       >
         {translations[language].title}
       </h1>
+      <button
+        onClick={toggleDarkMode}
+        className="mb-4 py-2 px-4 border rounded"
+      >
+        {darkMode ? "Light Mode" : "Dark Mode"}
+      </button>
+      <button
+        onClick={showHelp}
+        className="mb-4 py-2 px-4 bg-purple-500 hover:bg-purple-700 text-white font-bold rounded focus:outline-none focus:shadow-outline"
+      >
+        {translations[language].helpButton}
+      </button>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block text-sm font-bold mb-2">
           {translations[language].inputLabel}
         </label>
         <textarea
@@ -255,19 +284,23 @@ const FormInput = () => {
           onChange={(e) => setInputData(e.target.value)}
           onKeyPress={handleKeyPress}
           rows="5"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className={`shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline ${
+            darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
+          }`}
         ></textarea>
         {error && <p className="text-red-500 text-xs italic mt-2">{error}</p>}
       </div>
       <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
+        <label className="block text-sm font-bold mb-2">
           {translations[language].caesarShiftLabel}
         </label>
         <input
           type="number"
           value={shift}
           onChange={(e) => setShift(Number(e.target.value))}
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          className={`shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline ${
+            darkMode ? "bg-gray-700 text-white" : "bg-white text-gray-800"
+          }`}
         />
       </div>
       <button
@@ -306,7 +339,7 @@ const FormInput = () => {
         <h2 className="text-lg font-semibold mb-2">
           {translations[language].analysisTitle}
         </h2>
-        <p className="text-gray-700">
+        <p>
           <strong>Kekuatan Kunci:</strong> {securityAnalysis.keyStrength}
         </p>
         {securityAnalysis.vulnerabilities &&
@@ -321,7 +354,7 @@ const FormInput = () => {
             Tidak ada kerentanan yang terdeteksi.
           </p>
         )}
-        <p className="text-gray-700 mt-2">
+        <p>
           <strong>Risk Assessment:</strong> {riskAssessment}
         </p>
       </div>
@@ -401,10 +434,8 @@ const FormInput = () => {
         <h2 className="text-xl font-semibold mt-4">
           {translations[language].explanationTitle}
         </h2>
-        <p className="mt-2 text-gray-700">
-          {translations[language].securityImportance}
-        </p>
-        <div className="mt-2 text-gray-700">
+        <p className="mt-2">{translations[language].securityImportance}</p>
+        <div className="mt-2">
           <p className="mb-2">
             {language === "id"
               ? "Enkripsi adalah proses mengamankan data dengan mengubahnya menjadi bentuk yang tidak dapat dibaca tanpa bantuan algoritma enkripsi yang tepat."
@@ -451,18 +482,7 @@ const FormInput = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Clear History Button */}
-      <div className="mt-2">
-        <button
-          onClick={clearHistory}
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-        >
-          {translations[language].clearHistoryButton}
-        </button>
-      </div>
-
-      <footer className="mt-4 text-center text-gray-700">
+      <footer className="mt-4 text-center">
         {language === "id"
           ? "Web ini dibangun oleh:"
           : "This website is built by:"}{" "}
